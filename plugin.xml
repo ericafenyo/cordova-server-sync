@@ -82,6 +82,8 @@
     <source-file src="src/android/SyncService.java" target-dir="src/edu/berkeley/eecs/emission/cordova/serversync"/>
     <source-file src="src/android/CommunicationHelper.java" target-dir="src/edu/berkeley/eecs/emission/cordova/serversync"/>
     <source-file src="src/android/ServerSyncPlugin.java" target-dir="src/edu/berkeley/eecs/emission/cordova/serversync"/>
+    <source-file src="src/android/ConfigManager.java" target-dir="src/edu/berkeley/eecs/emission/cordova/serversync"/>
+    <source-file src="src/android/ServerSyncConfig.java" target-dir="src/edu/berkeley/eecs/emission/cordova/serversync"/>
     <resource-file src="res/android/authenticator.xml" target="res/xml/authenticator.xml"/>
     <resource-file src="res/android/syncadapter.xml" target="res/xml/syncadapter.xml"/>
   </platform>
@@ -99,8 +101,12 @@
     <header-file src="src/ios/BEMActivitySync.h" target-dir="BEMServerSync"/>
     <header-file src="src/ios/BEMServerSyncCommunicationHelper.h" target-dir="BEMServerSync"/>
     <header-file src="src/ios/BEMServerSyncPlugin.h" target-dir="BEMServerSync"/>
+    <header-file src="src/ios/BEMServerSyncConfig.h" target-dir="BEMServerSync"/>
+    <header-file src="src/ios/BEMServerSyncConfigManager.h" target-dir="BEMServerSync"/>
     <source-file src="src/ios/BEMActivitySync.m" target-dir="BEMServerSync"/>
     <source-file src="src/ios/BEMServerSyncCommunicationHelper.m" target-dir="BEMServerSync"/>
     <source-file src="src/ios/BEMServerSyncPlugin.m" target-dir="BEMServerSync"/>
+    <source-file src="src/ios/BEMServerSyncConfig.m" target-dir="BEMServerSync"/>
+    <source-file src="src/ios/BEMServerSyncConfigManager.m" target-dir="BEMServerSync"/>
   </platform>
 </plugin>
