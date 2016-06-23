@@ -1,7 +1,5 @@
 package edu.berkeley.eecs.emission.cordova.serversync;
 
-import com.google.android.gms.location.LocationRequest;
-
 import edu.berkeley.eecs.emission.cordova.tracker.Constants;
 
 /**
