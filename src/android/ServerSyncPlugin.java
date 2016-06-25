@@ -14,6 +14,8 @@ import android.content.Intent;
 import android.os.AsyncTask;
 import android.os.Bundle;
 
+import com.google.gson.Gson;
+
 import edu.berkeley.eecs.emission.R;
 import edu.berkeley.eecs.emission.cordova.clientstats.ClientStatsHelper;
 import edu.berkeley.eecs.emission.cordova.unifiedlogger.Log;
@@ -32,10 +34,10 @@ public class ServerSyncPlugin extends CordovaPlugin {
     // Our ContentResolver is actually a dummy - does this matter?
     ContentResolver mResolver;
     
-    private static final long SYNC_INTERVAL = 1 * 60 * 60; // Changed to 10 secs to debug syncing issues on some android version
     // END: variables to set up the automatic syncing
 
     private static String TAG = "ServerSyncPlugin";
+    private static Bundle unusedExtras = new Bundle();
 
     @Override
     protected void pluginInitialize() {
@@ -50,7 +52,7 @@ public class ServerSyncPlugin extends CordovaPlugin {
         // Turn on automatic syncing for the default account and authority
         ContentResolver.setIsSyncable(mAccount, AUTHORITY, 1);
         ContentResolver.setSyncAutomatically(mAccount, AUTHORITY, true);
-        ContentResolver.addPeriodicSync(mAccount, AUTHORITY, new Bundle(), SYNC_INTERVAL);
+        restartSync(actv);
     }
 
     @Override
@@ -85,10 +87,33 @@ public class ServerSyncPlugin extends CordovaPlugin {
             };
             task.execute(actv);
             return true;
+        } else if (action.equals("getConfig")) {
+            Context ctxt = cordova.getActivity();
+            ServerSyncConfig cfg = ConfigManager.getConfig(ctxt);
+            // Gson.toJson() represents a string and we are expecting an object in the interface
+            callbackContext.success(new JSONObject(new Gson().toJson(cfg)));
+            return true;
+        } else if (action.equals("setConfig")) {
+            Context ctxt = cordova.getActivity();
+            JSONObject newConfig = data.getJSONObject(0);
+            ServerSyncConfig cfg = new Gson().fromJson(newConfig.toString(), ServerSyncConfig.class);
+            ConfigManager.updateConfig(ctxt, cfg);
+            restartSync(ctxt);
+            callbackContext.success();
+            return true;
+
         } else {
             return false;
         }
     }
+
+    protected void restartSync(Context ctxt) {
+        System.out.println("Starting sync with interval "+
+                ConfigManager.getConfig(ctxt).getSyncInterval());
+        ContentResolver.addPeriodicSync(mAccount, AUTHORITY, unusedExtras,
+                ConfigManager.getConfig(ctxt).getSyncInterval());
+    }
+
 
     public static Account GetOrCreateSyncAccount(Context context) {
     	// Get an instance of the Android account manager
