@@ -10,16 +10,6 @@
 
 - (void)pluginInitialize
 {
-    if ([BEMServerSyncConfigManager instance].ios_use_remote_push) {
-        if ([UIApplication instancesRespondToSelector:@selector(registerForRemoteNotifications)]) {
-            [[UIApplication sharedApplication] registerForRemoteNotifications];
-        } else if ([UIApplication instancesRespondToSelector:@selector(registerForRemoteNotificationTypes:)]){
-            [[UIApplication sharedApplication] registerForRemoteNotificationTypes:(UIRemoteNotificationTypeBadge|UIRemoteNotificationTypeAlert)];
-        } else {
-            NSLog(@"registering for remote notifications not supported");
-        }
-    } else {
-    }
 }
 
 
@@ -74,8 +64,20 @@
         NSDictionary* newDict = [[command arguments] objectAtIndex:0];
         BEMServerSyncConfig* newCfg = [BEMServerSyncConfig new];
         [DataUtils dictToWrapper:newDict wrapper:newCfg];
-        [BEMServerSyncPlugin applySync];
         [BEMServerSyncConfigManager updateConfig:newCfg];
+        [BEMServerSyncPlugin applySync];
+        
+        PFInstallation* currentInstallation = [PFInstallation currentInstallation];
+        [currentInstallation saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
+            if (succeeded) {
+                [LocalNotificationManager addNotification:[NSString stringWithFormat:
+                                                           @"Successfully changed channels for installation"]];
+            } else {
+                [LocalNotificationManager addNotification:[NSString stringWithFormat:
+                                                           @"Error %@ while changing channels for installation", error.description] showUI:TRUE];
+                @throw error;
+            }
+        }];
         CDVPluginResult* result = [CDVPluginResult
                                    resultWithStatus:CDVCommandStatus_OK];
         [self.commandDelegate sendPluginResult:result callbackId:callbackId];
@@ -93,12 +95,15 @@
 + (void)applySync
 {
     if ([BEMServerSyncConfigManager instance].ios_use_remote_push) {
-        NSString* channel = [NSString stringWithFormat:@"%@_interval", @([BEMServerSyncConfigManager instance].sync_interval)];
+        NSString* channel = [NSString stringWithFormat:@"interval_%@", @([BEMServerSyncConfigManager instance].sync_interval)];
         PFInstallation *currentInstallation = [PFInstallation currentInstallation];
         [currentInstallation removeObjectForKey:@"channels"];
         [currentInstallation addUniqueObject:channel forKey:@"channels"];
     } else {
         [[UIApplication sharedApplication] setMinimumBackgroundFetchInterval:[BEMServerSyncConfigManager instance].sync_interval];
+        PFInstallation *currentInstallation = [PFInstallation currentInstallation];
+        [currentInstallation removeObjectForKey:@"channels"];
+
     }
 }
 
