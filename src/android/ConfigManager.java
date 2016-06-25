@@ -28,12 +28,12 @@ public class ConfigManager {
 
     private static ServerSyncConfig readFromCache(Context context) {
         return UserCacheFactory.getUserCache(context)
-                .getDocument(R.string.key_usercache_sensor_config, ServerSyncConfig.class);
+                .getDocument(R.string.key_usercache_sync_config, ServerSyncConfig.class);
     }
 
     protected static void updateConfig(Context context, ServerSyncConfig newConfig) {
         UserCacheFactory.getUserCache(context)
-                .putReadWriteDocument(R.string.key_usercache_sensor_config, newConfig);
+                .putReadWriteDocument(R.string.key_usercache_sync_config, newConfig);
         cachedConfig = newConfig;
     }
 }
