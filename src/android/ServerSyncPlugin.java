@@ -108,6 +108,8 @@ public class ServerSyncPlugin extends CordovaPlugin {
     }
 
     protected void restartSync(Context ctxt) {
+        System.out.println("Starting sync with interval "+
+                ConfigManager.getConfig(ctxt).getSyncInterval());
         ContentResolver.addPeriodicSync(mAccount, AUTHORITY, unusedExtras,
                 ConfigManager.getConfig(ctxt).getSyncInterval());
     }
