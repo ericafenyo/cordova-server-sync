@@ -11,6 +11,6 @@
 @interface BEMServerSyncConfig : NSObject
 
 @property long sync_interval;
-@property NSString* device_token;
+@property BOOL ios_use_remote_push;
 
 @end

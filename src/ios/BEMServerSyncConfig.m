@@ -15,6 +15,7 @@
 
 -(id)init {
     self.sync_interval = ONE_HOUR;
+    self.ios_use_remote_push = YES;
     return self;
 }
 

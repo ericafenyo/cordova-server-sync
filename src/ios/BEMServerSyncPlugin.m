@@ -8,6 +8,21 @@
 
 @implementation BEMServerSyncPlugin
 
+- (void)pluginInitialize
+{
+    if ([BEMServerSyncConfigManager instance].ios_use_remote_push) {
+        if ([UIApplication instancesRespondToSelector:@selector(registerForRemoteNotifications)]) {
+            [[UIApplication sharedApplication] registerForRemoteNotifications];
+        } else if ([UIApplication instancesRespondToSelector:@selector(registerForRemoteNotificationTypes:)]){
+            [[UIApplication sharedApplication] registerForRemoteNotificationTypes:(UIRemoteNotificationTypeBadge|UIRemoteNotificationTypeAlert)];
+        } else {
+            NSLog(@"registering for remote notifications not supported");
+        }
+    } else {
+    }
+}
+
+
 - (void)forceSync:(CDVInvokedUrlCommand*)command
 {
     NSString* callbackId = [command callbackId];
@@ -59,15 +74,8 @@
         NSDictionary* newDict = [[command arguments] objectAtIndex:0];
         BEMServerSyncConfig* newCfg = [BEMServerSyncConfig new];
         [DataUtils dictToWrapper:newDict wrapper:newCfg];
-        PFInstallation *currentInstallation = [PFInstallation currentInstallation];
-        // set the device token so that we know which device to change the token for
-        newCfg.device_token = currentInstallation.deviceToken;
+        [BEMServerSyncPlugin applySync];
         [BEMServerSyncConfigManager updateConfig:newCfg];
-        // iOS sync happens through silent push notifications, so the server needs
-        // to be modified, not the client
-        // Let's set the background fetch interval though so that we can report how
-        // frequently it happens (whether we use it or not)
-        [[UIApplication sharedApplication] setMinimumBackgroundFetchInterval:[BEMServerSyncConfigManager instance].sync_interval];
         CDVPluginResult* result = [CDVPluginResult
                                    resultWithStatus:CDVCommandStatus_OK];
         [self.commandDelegate sendPluginResult:result callbackId:callbackId];
@@ -80,6 +88,18 @@
         [self.commandDelegate sendPluginResult:result callbackId:callbackId];
     }
     
+}
+
++ (void)applySync
+{
+    if ([BEMServerSyncConfigManager instance].ios_use_remote_push) {
+        NSString* channel = [NSString stringWithFormat:@"%@_interval", @([BEMServerSyncConfigManager instance].sync_interval)];
+        PFInstallation *currentInstallation = [PFInstallation currentInstallation];
+        [currentInstallation removeObjectForKey:@"channels"];
+        [currentInstallation addUniqueObject:channel forKey:@"channels"];
+    } else {
+        [[UIApplication sharedApplication] setMinimumBackgroundFetchInterval:[BEMServerSyncConfigManager instance].sync_interval];
+    }
 }
 
 @end
