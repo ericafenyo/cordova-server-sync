@@ -90,6 +90,7 @@ public class ServerSyncAdapter extends AbstractThreadedSyncAdapter {
 
 		if (userName == null || userName.trim().length() == 0) {
 			System.out.println("we don't know who we are, so we can't get our data");
+			performPeriodicActivity(cachedContext);
 			return;
 		}
 		// First, get a token so that we can make the authorized calls to the server
@@ -158,13 +159,7 @@ public class ServerSyncAdapter extends AbstractThreadedSyncAdapter {
 			e.printStackTrace();
 		}
 
-        /*
-         * Now, do some validation of the current state and clean it up if necessary. This should
-         * help with issues we have seen in the field where location updates pause mysteriously, or
-         * geofences are never exited.
-         */
-		TripDiaryStateMachineReceiver.validateAndCleanupState(cachedContext);
-		TripDiaryStateMachineReceiver.saveBatteryAndSimulateUser(cachedContext);
+		performPeriodicActivity(cachedContext);
 		// We are sending this only locally, so we don't care about the URI and so on.
         Intent localIntent = new Intent("edu.berkeley.eecs.emission.sync.NEW_DATA");
         Bundle b = new Bundle();
@@ -172,6 +167,16 @@ public class ServerSyncAdapter extends AbstractThreadedSyncAdapter {
         localIntent.putExtras(b);
         Log.i(cachedContext, TAG, "Finished sync, sending local broadcast");
         LocalBroadcastManager.getInstance(cachedContext).sendBroadcastSync(localIntent);
+	}
+
+	public static void performPeriodicActivity(Context cachedContext) {
+        /*
+         * Now, do some validation of the current state and clean it up if necessary. This should
+         * help with issues we have seen in the field where location updates pause mysteriously, or
+         * geofences are never exited.
+         */
+		TripDiaryStateMachineReceiver.validateAndCleanupState(cachedContext);
+		TripDiaryStateMachineReceiver.saveBatteryAndSimulateUser(cachedContext);
 	}
 
 	/*
