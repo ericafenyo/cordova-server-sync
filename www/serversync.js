@@ -11,8 +11,10 @@ var exec = require("cordova/exec")
  */
 
 var ServerSync = {
-    forceSync: function (successCallback, errorCallback) {
-        exec(successCallback, errorCallback, "ServerSync", "forceSync", []);
+    forceSync: function (resolve, reject) {
+        return new Promise(function(resolve, reject) {
+            exec(resolve, reject, "ServerSync", "forceSync", []);
+        });
     },
     getConfig: function () {
         return new Promise(function(resolve, reject) {
