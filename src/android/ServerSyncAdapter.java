@@ -170,13 +170,8 @@ public class ServerSyncAdapter extends AbstractThreadedSyncAdapter {
 	}
 
 	public static void performPeriodicActivity(Context cachedContext) {
-        /*
-         * Now, do some validation of the current state and clean it up if necessary. This should
-         * help with issues we have seen in the field where location updates pause mysteriously, or
-         * geofences are never exited.
-         */
-		TripDiaryStateMachineReceiver.validateAndCleanupState(cachedContext);
-		TripDiaryStateMachineReceiver.saveBatteryAndSimulateUser(cachedContext);
+		// TODO: Replace this by a broadcast notification to reduce dependency between the packages
+		TripDiaryStateMachineReceiver.performPeriodicActivity(cachedContext);
 	}
 
 	/*
