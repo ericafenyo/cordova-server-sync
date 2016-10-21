@@ -105,7 +105,7 @@ public class ServerSyncAdapter extends AbstractThreadedSyncAdapter {
 		 * We are going to send over information for all the data in a single JSON object, to avoid overhead.
 		 * So we take a quick check to see if the number of entries is zero.
 		 */
-		BuiltinUserCache biuc = new BuiltinUserCache(cachedContext);
+		BuiltinUserCache biuc = BuiltinUserCache.getDatabase(cachedContext);
 
 		Log.i(cachedContext, TAG, "Starting sync with push");
 		try {
