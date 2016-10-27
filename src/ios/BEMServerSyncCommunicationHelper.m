@@ -25,6 +25,7 @@
 #import "BEMBuiltinUserCache.h"
 #import "BEMConstants.h"
 #import "Bolts/Bolts.h"
+#import "DataUtils.h"
 
 static NSString* kUsercachePutPath = @"/usercache/put";
 static NSString* kUsercacheGetPath = @"/usercache/get";
@@ -87,6 +88,8 @@ static NSString* kSetStatsPath = @"/stats/set";
                                                                             (unsigned long)entriesToPush.count]
                                                                     showUI:TRUE];
                                      [[BuiltinUserCache database] clearEntries:tq];
+                                     // rw-docs are pushed like entries, so let's handle them here
+                                     [[BuiltinUserCache database] clearSupersededRWDocs:tq];
                                  } else {
                                      [LocalNotificationManager addNotification:[NSString stringWithFormat:
                                                                                 @"Got error %@ while pushing changes to server, retaining data", error] showUI:TRUE];
@@ -126,6 +129,11 @@ static NSString* kSetStatsPath = @"/stats/set";
                                                @"about to launch remote call for server_to_phone"] showUI:FALSE];
     long msTimeStart = [ClientStatsDatabase getCurrentTimeMillis];
     
+    // First, we delete all obsolete documents
+    TimeQuery* tq = [TimeQuery new];
+    tq.startTs = 0;
+    tq.endTs = [DataUtils dateToTs:[NSDate date]];;
+    [[BuiltinUserCache database] clearObsoleteDocs:tq];
     // Called in order to download data in the background
     [self server_to_phone:^(NSData *data, NSURLResponse *response, NSError *error) {
         [LocalNotificationManager addNotification:[NSString stringWithFormat:
