@@ -116,6 +116,7 @@ public class ServerSyncAdapter extends AbstractThreadedSyncAdapter {
 				CommunicationHelper.phone_to_server(cachedContext, userToken, entriesToPush);
 				UserCache.TimeQuery tq = BuiltinUserCache.getTimeQuery(cachedContext, entriesToPush);
 				biuc.clearEntries(tq);
+				biuc.clearSupersededRWDocs(tq);
 			}
 		} catch (JSONException e) {
 			Log.e(cachedContext, TAG, "Error "+e+" while saving converting trips to JSON, skipping all of them");
@@ -130,9 +131,12 @@ public class ServerSyncAdapter extends AbstractThreadedSyncAdapter {
          * because we want to try it even if the push fails.
          */
 		try {
+			UserCache.TimeQuery tq = new UserCache.TimeQuery("write_ts", 0, System.currentTimeMillis()/1000);
+			biuc.clearObsoleteDocs(tq);
 			JSONArray entriesReceived = edu.berkeley.eecs.emission.cordova.serversync.CommunicationHelper.server_to_phone(
 					cachedContext, userToken);
 			biuc.sync_server_to_phone(entriesReceived);
+			biuc.checkAfterPull();
 		} catch (JSONException e) {
 			Log.e(cachedContext, TAG, "Error "+e+" while saving converting trips to JSON, skipping all of them");
 		} catch (IOException e) {

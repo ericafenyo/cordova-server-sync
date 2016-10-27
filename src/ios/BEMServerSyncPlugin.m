@@ -5,6 +5,7 @@
 #import "LocalNotificationManager.h"
 #import <Parse/Parse.h>
 #import "DataUtils.h"
+#import "BEMBuiltinUserCache.h"
 
 @implementation BEMServerSyncPlugin
 
@@ -18,6 +19,7 @@
     NSString* callbackId = [command callbackId];
     @try {
         [[BEMServerSyncCommunicationHelper backgroundSync] continueWithBlock:^id(BFTask *task) {
+            [[BuiltinUserCache database] checkAfterPull];
             [LocalNotificationManager addNotification:[NSString stringWithFormat:
                                                        @"all sync completed"] showUI:TRUE];
             CDVPluginResult* result = [CDVPluginResult
