@@ -24,10 +24,11 @@ import java.util.Properties;
 
 import edu.berkeley.eecs.emission.cordova.tracker.location.TripDiaryStateMachineReceiver;
 import edu.berkeley.eecs.emission.cordova.tracker.sensors.BatteryUtils;
-import edu.berkeley.eecs.emission.cordova.clientstats.ClientStatsHelper;
 import edu.berkeley.eecs.emission.R;
 import edu.berkeley.eecs.emission.cordova.jwtauth.GoogleAccountManagerAuth;
 import edu.berkeley.eecs.emission.cordova.jwtauth.UserProfile;
+import edu.berkeley.eecs.emission.cordova.tracker.wrapper.StatsEvent;
+import edu.berkeley.eecs.emission.cordova.tracker.wrapper.Timer;
 import edu.berkeley.eecs.emission.cordova.unifiedlogger.Log;
 import edu.berkeley.eecs.emission.cordova.usercache.BuiltinUserCache;
 import edu.berkeley.eecs.emission.cordova.usercache.UserCache;
@@ -43,7 +44,6 @@ public class ServerSyncAdapter extends AbstractThreadedSyncAdapter {
 	Properties uuidMap;
 	boolean syncSkip = false;
 	Context cachedContext;
-	ClientStatsHelper statsHelper;
 	// TODO: Figure out a principled way to do this
 	private static int CONFIRM_TRIPS_ID = 99;
 	
@@ -56,7 +56,6 @@ public class ServerSyncAdapter extends AbstractThreadedSyncAdapter {
 		// See https://nononsense-notes.googlecode.com/git-history/3716b44b527096066856133bfc8dfa09f9244db8/NoNonsenseNotes/src/com/nononsenseapps/notepad/sync/SyncAdapter.java
 		// for an example
 		cachedContext = context;
-		statsHelper = new ClientStatsHelper(context);
 		// Our ContentProvider is a dummy so there is nothing else to do here
 	}
 	
@@ -67,15 +66,18 @@ public class ServerSyncAdapter extends AbstractThreadedSyncAdapter {
 	public void onPerformSync(Account account, Bundle extras, String authority,
 			ContentProviderClient provider, SyncResult syncResult) {
         android.util.Log.i("SYNC", "PERFORMING SYNC");
+		Timer to = new Timer();
+
         long msTime = System.currentTimeMillis();
 		String syncTs = String.valueOf(msTime);
-		statsHelper.storeMeasurement(cachedContext.getString(R.string.sync_launched), null, syncTs);
+		BuiltinUserCache biuc = BuiltinUserCache.getDatabase(cachedContext);
+		biuc.putMessage(R.string.key_usercache_client_nav_event,
+				new StatsEvent(cachedContext,R.string.sync_launched));
 		
 		/*
 		 * Read the battery level when the app is being launched anyway.
 		 */
-		statsHelper.storeMeasurement(cachedContext.getString(R.string.battery_level),
-				String.valueOf(BatteryUtils.getBatteryInfo(cachedContext).getBatteryLevelPct()), syncTs);
+		biuc.putSensorData(R.string.key_usercache_battery, BatteryUtils.getBatteryInfo(cachedContext));
 				
 		if (syncSkip == true) {
 			System.err.println("Something is wrong and we have been asked to skip the sync, exiting immediately");
@@ -105,10 +107,10 @@ public class ServerSyncAdapter extends AbstractThreadedSyncAdapter {
 		 * We are going to send over information for all the data in a single JSON object, to avoid overhead.
 		 * So we take a quick check to see if the number of entries is zero.
 		 */
-		BuiltinUserCache biuc = BuiltinUserCache.getDatabase(cachedContext);
 
 		Log.i(cachedContext, TAG, "Starting sync with push");
 		try {
+			Timer t = new Timer();
 			JSONArray entriesToPush = biuc.sync_phone_to_server();
 			if (entriesToPush.length() == 0) {
 				System.out.println("No data to send, returning early!");
@@ -118,10 +120,16 @@ public class ServerSyncAdapter extends AbstractThreadedSyncAdapter {
 				biuc.clearEntries(tq);
 				biuc.clearSupersededRWDocs(tq);
 			}
+			biuc.putMessage(R.string.key_usercache_client_time,
+					new StatsEvent(cachedContext, R.string.push_duration, t.elapsedSecs()));
 		} catch (JSONException e) {
 			Log.e(cachedContext, TAG, "Error "+e+" while saving converting trips to JSON, skipping all of them");
+			biuc.putMessage(R.string.key_usercache_client_error,
+					new StatsEvent(cachedContext, R.string.push_duration));
 		} catch (IOException e) {
 			Log.e(cachedContext, TAG, "IO Error "+e+" while posting converted trips to JSON");
+			biuc.putMessage(R.string.key_usercache_client_error,
+					new StatsEvent(cachedContext, R.string.push_duration));
 		}
 
 		Log.i(cachedContext, TAG, "Push complete, now pulling");
@@ -131,36 +139,23 @@ public class ServerSyncAdapter extends AbstractThreadedSyncAdapter {
          * because we want to try it even if the push fails.
          */
 		try {
+			Timer t = new Timer();
 			UserCache.TimeQuery tq = new UserCache.TimeQuery("write_ts", 0, System.currentTimeMillis()/1000);
 			biuc.clearObsoleteDocs(tq);
 			JSONArray entriesReceived = edu.berkeley.eecs.emission.cordova.serversync.CommunicationHelper.server_to_phone(
 					cachedContext, userToken);
 			biuc.sync_server_to_phone(entriesReceived);
 			biuc.checkAfterPull();
+			biuc.putMessage(R.string.key_usercache_client_time,
+					new StatsEvent(cachedContext, R.string.pull_duration, t.elapsedSecs()));
 		} catch (JSONException e) {
 			Log.e(cachedContext, TAG, "Error "+e+" while saving converting trips to JSON, skipping all of them");
+			biuc.putMessage(R.string.key_usercache_client_error,
+					new StatsEvent(cachedContext, R.string.pull_duration));
 		} catch (IOException e) {
 			Log.e(cachedContext, TAG, "IO Error "+e+" while posting converted trips to JSON");
-		}
-
-
-		try{
-			// Now, we push the stats and clear it
-			// Note that the database ensures that we have a blank document if there are no stats
-			// by skipping the metadata in that case.
-			JSONObject freshStats = statsHelper.getMeasurements();
-			if (freshStats.length() > 0) {
-				CommunicationHelper.pushStats(cachedContext, userToken, freshStats);
-				statsHelper.clear();
-			}
-			statsHelper.storeMeasurement(cachedContext.getString(R.string.sync_duration),
-					String.valueOf(System.currentTimeMillis() - msTime), syncTs);
-		} catch (IOException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
-		} catch (JSONException e) {
-			// TODO Auto-generated catch block
-			e.printStackTrace();
+			biuc.putMessage(R.string.key_usercache_client_error,
+					new StatsEvent(cachedContext, R.string.pull_duration));
 		}
 
 		performPeriodicActivity(cachedContext);
@@ -171,6 +166,8 @@ public class ServerSyncAdapter extends AbstractThreadedSyncAdapter {
         localIntent.putExtras(b);
         Log.i(cachedContext, TAG, "Finished sync, sending local broadcast");
         LocalBroadcastManager.getInstance(cachedContext).sendBroadcastSync(localIntent);
+		biuc.putMessage(R.string.key_usercache_client_time,
+				new StatsEvent(cachedContext, R.string.sync_duration, to.elapsedSecs()));
 	}
 
 	public static void performPeriodicActivity(Context cachedContext) {

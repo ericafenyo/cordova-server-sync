@@ -14,16 +14,6 @@ public class CommunicationHelper {
     public static final String TAG = "CommunicationHelper";
 
     /*
-     * Pushes the stats to the host.
-     */
-    public static void pushStats(Context cachedContext, String userToken,
-                                 JSONObject appStats) throws IOException, JSONException {
-        String commuteTrackerHost = ConnectionSettings.getConnectURL(cachedContext);
-        edu.berkeley.eecs.emission.cordova.comm.CommunicationHelper.pushJSON(
-            cachedContext, commuteTrackerHost + "/stats/set", userToken, "stats", appStats);
-    }
-
-    /*
      * Gets user cache information from server
      */
 
