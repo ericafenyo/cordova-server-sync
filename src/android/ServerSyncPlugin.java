@@ -17,7 +17,6 @@ import android.os.Bundle;
 import com.google.gson.Gson;
 
 import edu.berkeley.eecs.emission.R;
-import edu.berkeley.eecs.emission.cordova.clientstats.ClientStatsHelper;
 import edu.berkeley.eecs.emission.cordova.unifiedlogger.Log;
 
 public class ServerSyncPlugin extends CordovaPlugin {
@@ -68,10 +67,6 @@ public class ServerSyncPlugin extends CordovaPlugin {
              * Calling forceSync so that we can know when the tasks is complete
              * and do a callback at that point.
              */
-            ClientStatsHelper statsHelper = new ClientStatsHelper(ctxt);
-            statsHelper.storeMeasurement(ctxt.getString(R.string.button_sync_forced), null,
-                    String.valueOf(System.currentTimeMillis()));
-
             final CallbackContext cachedCallbackContext = callbackContext;
             AsyncTask<Context, Void, Void> task = new AsyncTask<Context, Void, Void>() {
                 protected Void doInBackground(Context... ctxt) {
