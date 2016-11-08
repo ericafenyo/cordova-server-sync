@@ -73,10 +73,10 @@
         [currentInstallation saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
             if (succeeded) {
                 [LocalNotificationManager addNotification:[NSString stringWithFormat:
-                                                           @"Successfully changed channels for installation"]];
+                                                           @"Successfully changed channel to %ld for installation", newCfg.sync_interval]];
             } else {
                 [LocalNotificationManager addNotification:[NSString stringWithFormat:
-                                                           @"Error %@ while changing channels for installation", error.description] showUI:TRUE];
+                                                           @"Error %@ while changing channel to %ldfor installation", error.description, newCfg.sync_interval] showUI:TRUE];
                 @throw error;
             }
         }];
@@ -101,6 +101,8 @@
         PFInstallation *currentInstallation = [PFInstallation currentInstallation];
         [currentInstallation removeObjectForKey:@"channels"];
         [currentInstallation addUniqueObject:channel forKey:@"channels"];
+        [LocalNotificationManager addNotification:[NSString stringWithFormat:
+                                                   @"For remotePush, setting channel = %@", channel] showUI:TRUE];
     } else {
         [[UIApplication sharedApplication] setMinimumBackgroundFetchInterval:[BEMServerSyncConfigManager instance].sync_interval];
         PFInstallation *currentInstallation = [PFInstallation currentInstallation];
