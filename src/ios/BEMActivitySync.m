@@ -49,6 +49,9 @@
                  */
                 NSArray* motionEntries = [self convertToEntries:activities locationEntries:locationArray];
                 NSArray* combinedArray = [locationArray arrayByAddingObjectsFromArray:motionEntries];
+                [LocalNotificationManager addNotification:[NSString stringWithFormat:
+                                                           @"%ld locationArray + %ld motionEntries = %ld combinedArray",
+                                                           locationArray.count, motionEntries.count, combinedArray.count]];
                 completionHandler(combinedArray);
             } else {
                 [LocalNotificationManager addNotification:[NSString stringWithFormat:
