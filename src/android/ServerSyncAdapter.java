@@ -11,6 +11,8 @@ import android.content.ContentProviderClient;
 import android.content.Context;
 import android.content.Intent;
 import android.content.SyncResult;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.os.Bundle;
 import android.support.v4.app.NotificationCompat;
 import android.support.v4.content.LocalBroadcastManager;
@@ -178,47 +180,6 @@ public class ServerSyncAdapter extends AbstractThreadedSyncAdapter {
 	/*
 	 * Generates a notification for the user.
 	 */
-	
-	public void generateNotifications(JSONArray sections) {
-		if (sections.length() > 0) {
-			String message = "You have "+sections.length()+" pending trips to categorize";
-			generateNotification(CONFIRM_TRIPS_ID, message, edu.berkeley.eecs.emission.MainActivity.class);
-		} else {
-			// no unclassified sections, don't generate a notification
-		}
-	}
-	
-	@SuppressWarnings("rawtypes")
-	private void generateNotification(int messageId, String message, Class activityToLaunch) {
-		System.out.println("While generating notification sectionId = "+messageId);
-		NotificationCompat.Builder builder = new NotificationCompat.Builder(cachedContext);
-		builder.setAutoCancel(true);
-		builder.setSmallIcon(R.drawable.icon);
-		builder.setContentTitle(cachedContext.getString(R.string.app_name));
-		builder.setContentText(message);
-		
-		/*
-		 * This is a bit of magic voodoo. The tutorial on launching the activity actually uses a stackbuilder
-		 * to create a fake stack for the new activity. However, it looks like the stackbuilder
-		 * is only available in more recent versions of the API. So I use the version for a special activity PendingIntent
-		 * (since our app currently has only one activity) which resolves that issue.
-		 * This also appears to work, at least in the emulator.
-		 * 
-		 * TODO: Decide what level API we want to support, and whether we want a more comprehensive activity.
-		 */
-		
-		Intent activityIntent = new Intent(cachedContext, activityToLaunch);
-		activityIntent.setFlags(Intent.FLAG_ACTIVITY_NEW_TASK);
-		
-		PendingIntent activityPendingIntent = PendingIntent.getActivity(cachedContext, CONFIRM_TRIPS_ID,
-				activityIntent, PendingIntent.FLAG_UPDATE_CURRENT);
-		builder.setContentIntent(activityPendingIntent);		
-		
-		NotificationManager nMgr =
-				(NotificationManager)cachedContext.getSystemService(Context.NOTIFICATION_SERVICE);
-		
-		nMgr.notify(messageId, builder.build());
-	}
 	
 	public String getPath(String serviceName) {
 		return "/"+userName+"/"+serviceName;
