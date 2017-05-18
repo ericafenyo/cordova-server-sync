@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <plugin xmlns="http://www.phonegap.com/ns/plugins/1.0"
         id="edu.berkeley.eecs.emission.cordova.serversync"
-        version="0.0.1">
+        version="1.0.0">
 
   <name>ServerSync</name>
   <description>Push and pull local data to the server</description>
@@ -12,7 +12,8 @@
     <engine name="cordova" version=">=3.6.0"/>
   </engines>
 
-  <asset src="www/serversync.js" target="js/serversync.js"/>
+  <asset src="www/ui/ionic/templates/main-sync-settings.html" target="templates/control/main-sync-settings.html"/>
+  <asset src="www/ui/ionic/js/sync-settings.js" target="js/control/sync-settings.js"/>
 
   <js-module src="www/serversync.js" name="serversync">
     <clobbers target="cordova.plugins.BEMServerSync" />
