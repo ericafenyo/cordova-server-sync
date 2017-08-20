@@ -22,11 +22,11 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.util.Properties;
 
+import edu.berkeley.eecs.emission.cordova.jwtauth.AuthTokenCreationFactory;
+import edu.berkeley.eecs.emission.cordova.jwtauth.AuthTokenCreator;
 import edu.berkeley.eecs.emission.cordova.tracker.location.TripDiaryStateMachineReceiver;
 import edu.berkeley.eecs.emission.cordova.tracker.sensors.BatteryUtils;
 import edu.berkeley.eecs.emission.R;
-import edu.berkeley.eecs.emission.cordova.jwtauth.GoogleAccountManagerAuth;
-import edu.berkeley.eecs.emission.cordova.jwtauth.UserProfile;
 import edu.berkeley.eecs.emission.cordova.tracker.wrapper.StatsEvent;
 import edu.berkeley.eecs.emission.cordova.tracker.wrapper.Timer;
 import edu.berkeley.eecs.emission.cordova.unifiedlogger.Log;
@@ -85,9 +85,10 @@ public class ServerSyncAdapter extends AbstractThreadedSyncAdapter {
 		}
 
 		System.out.println("Can we use the extras bundle to transfer information? "+extras);
+		AuthTokenCreator ac = AuthTokenCreationFactory.getInstance(cachedContext);
 		// Get the list of uncategorized trips from the server
 		// hardcoding the URL and the userID for now since we are still using fake data
-		String userName = UserProfile.getInstance(cachedContext).getUserEmail();
+		String userName = ac.getUserEmail().await().getEmail();
 		System.out.println("real user name = "+userName);
 
 		if (userName == null || userName.trim().length() == 0) {
@@ -96,7 +97,7 @@ public class ServerSyncAdapter extends AbstractThreadedSyncAdapter {
 			return;
 		}
 		// First, get a token so that we can make the authorized calls to the server
-		String userToken = GoogleAccountManagerAuth.getServerToken(cachedContext, userName);
+		String userToken = ac.getServerToken().await().getToken();
 
 
 		/*
