@@ -22,6 +22,7 @@ import org.json.JSONObject;
 import java.io.IOException;
 import java.util.Properties;
 
+import edu.berkeley.eecs.emission.cordova.connectionsettings.ConnectionSettings;
 import edu.berkeley.eecs.emission.cordova.jwtauth.AuthTokenCreationFactory;
 import edu.berkeley.eecs.emission.cordova.jwtauth.AuthTokenCreator;
 import edu.berkeley.eecs.emission.cordova.tracker.location.TripDiaryStateMachineReceiver;
@@ -32,6 +33,7 @@ import edu.berkeley.eecs.emission.cordova.tracker.wrapper.Timer;
 import edu.berkeley.eecs.emission.cordova.unifiedlogger.Log;
 import edu.berkeley.eecs.emission.cordova.usercache.BuiltinUserCache;
 import edu.berkeley.eecs.emission.cordova.usercache.UserCache;
+import edu.berkeley.eecs.emission.cordova.usercache.UserCacheFactory;
 
 /**
  * @author shankari
@@ -81,6 +83,19 @@ public class ServerSyncAdapter extends AbstractThreadedSyncAdapter {
 				
 		if (syncSkip == true) {
 			System.err.println("Something is wrong and we have been asked to skip the sync, exiting immediately");
+			return;
+		}
+		JSONObject introDoneResult = null;
+		try {
+			introDoneResult = UserCacheFactory.getUserCache(cachedContext).getLocalStorage("intro_done", false);
+			Log.i(cachedContext, TAG, "introDoneResult = "+introDoneResult);
+			if (introDoneResult == null) {
+				Log.i(cachedContext, TAG, "intro is not yet done, skip sync by exiting immediately...");
+				return;
+			}
+		} catch (JSONException e) {
+			Log.e(cachedContext, TAG, "error while reading intro done result, skip sync by exiting immediately...");
+			Log.exception(cachedContext, TAG, e);
 			return;
 		}
 
