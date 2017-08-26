@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <plugin xmlns="http://www.phonegap.com/ns/plugins/1.0"
         id="edu.berkeley.eecs.emission.cordova.serversync"
-        version="1.0.1">
+        version="1.0.2">
 
   <name>ServerSync</name>
   <description>Push and pull local data to the server</description>
