@@ -1,7 +1,7 @@
 <?xml version="1.0" encoding="utf-8"?>
 <plugin xmlns="http://www.phonegap.com/ns/plugins/1.0"
         id="edu.berkeley.eecs.emission.cordova.serversync"
-        version="1.0.2">
+        version="1.1.0">
 
   <name>ServerSync</name>
   <description>Push and pull local data to the server</description>
@@ -32,6 +32,7 @@
   <dependency id="edu.berkeley.eecs.emission.cordova.comm"
              url="https://github.com/e-mission/cordova-server-communication.git"/>
   -->
+  <hook type="after_plugin_install" src="hooks/android/addResourcesClassImport.js" />
 
   <platform name="android">
 
@@ -71,7 +72,7 @@
         </service>
     	<provider
         	android:name="edu.berkeley.eecs.emission.cordova.serversync.StubContentProvider"
-        	android:authorities="edu.berkeley.eecs.emission.provider"
+        	android:authorities="edu.berkeley.eecs.embase.provider"
         	android:exported="false"
         	android:syncable="true"/>
     </config-file>
@@ -87,6 +88,7 @@
     <source-file src="src/android/ServerSyncConfig.java" target-dir="src/edu/berkeley/eecs/emission/cordova/serversync"/>
     <resource-file src="res/android/authenticator.xml" target="res/xml/authenticator.xml"/>
     <resource-file src="res/android/syncadapter.xml" target="res/xml/syncadapter.xml"/>
+    <resource-file src="res/android/ic_mood_question.png" target="res/drawable/ic_mood_question.png"/>
   </platform>
 
   <platform name="ios">
