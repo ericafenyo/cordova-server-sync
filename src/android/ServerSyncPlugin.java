@@ -16,7 +16,6 @@ import android.os.Bundle;
 
 import com.google.gson.Gson;
 
-import edu.berkeley.eecs.emission.R;
 import edu.berkeley.eecs.emission.cordova.unifiedlogger.Log;
 
 public class ServerSyncPlugin extends CordovaPlugin {
