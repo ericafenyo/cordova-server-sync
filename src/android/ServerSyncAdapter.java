@@ -28,6 +28,7 @@ import edu.berkeley.eecs.emission.cordova.jwtauth.AuthTokenCreator;
 import edu.berkeley.eecs.emission.cordova.tracker.location.TripDiaryStateMachineReceiver;
 import edu.berkeley.eecs.emission.cordova.tracker.sensors.BatteryUtils;
 import edu.berkeley.eecs.emission.R;
+
 import edu.berkeley.eecs.emission.cordova.tracker.wrapper.StatsEvent;
 import edu.berkeley.eecs.emission.cordova.tracker.wrapper.Timer;
 import edu.berkeley.eecs.emission.cordova.unifiedlogger.Log;
@@ -98,6 +99,8 @@ public class ServerSyncAdapter extends AbstractThreadedSyncAdapter {
 			Log.exception(cachedContext, TAG, e);
 			return;
 		}
+
+		performPeriodicActivity(cachedContext);
 
 		System.out.println("Can we use the extras bundle to transfer information? "+extras);
 		AuthTokenCreator ac = AuthTokenCreationFactory.getInstance(cachedContext);
@@ -174,7 +177,6 @@ public class ServerSyncAdapter extends AbstractThreadedSyncAdapter {
 					new StatsEvent(cachedContext, R.string.pull_duration));
 		}
 
-		performPeriodicActivity(cachedContext);
 		// We are sending this only locally, so we don't care about the URI and so on.
         Intent localIntent = new Intent("edu.berkeley.eecs.emission.sync.NEW_DATA");
         Bundle b = new Bundle();
