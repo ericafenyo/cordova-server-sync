@@ -68,6 +68,7 @@ public class ServerSyncPlugin extends CordovaPlugin {
              */
             final CallbackContext cachedCallbackContext = callbackContext;
             AsyncTask<Context, Void, Void> task = new AsyncTask<Context, Void, Void>() {
+                @Override
                 protected Void doInBackground(Context... ctxt) {
                     ServerSyncAdapter ssa = new ServerSyncAdapter(ctxt[0], true);
                     ssa.onPerformSync(mAccount, null, AUTHORITY,
@@ -75,7 +76,8 @@ public class ServerSyncPlugin extends CordovaPlugin {
                     return null;
                 }
 
-                protected void onPostExecute(Long result) {
+                @Override
+                protected void onPostExecute(Void result) {
                     cachedCallbackContext.success();
                 }
             };
