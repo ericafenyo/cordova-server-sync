@@ -12,7 +12,7 @@
   },
   "repository": {
     "type": "git",
-    "url": "git+https://github.com/e-mission/cordova-server-sync.git"
+    "url": "git+https://github.com/ericafenyo/cordova-server-sync.git"
   },
   "keywords": [
     "emission",
