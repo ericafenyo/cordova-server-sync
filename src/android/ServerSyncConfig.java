@@ -9,14 +9,20 @@ public class ServerSyncConfig {
 
     public ServerSyncConfig() {
         this.sync_interval = DEFAULT_SYNC_INTERVAL;
+        this.manualOnly = true;
     }
 
     public long getSyncInterval() {
         return this.sync_interval;
     }
 
+    public boolean isManual(){
+        return this.manualOnly;
+    }
+
     // We don't need any "set" fields because the entire document will be set as a whole
     // using the javascript interface
     private long sync_interval;
+    private boolean manualOnly;
     private boolean ios_use_remote_push; // iOS only, unused
 }
