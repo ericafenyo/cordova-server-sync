@@ -5,6 +5,9 @@
 - (void) pluginInitialize;
 - (void) forceSync:(CDVInvokedUrlCommand*)command;
 - (void) setConfig:(CDVInvokedUrlCommand*)command;
-+ (void) applySync;
++ (void) restartSync;
++ (void) startManualSync;
++ (void) applyAutoSync;
 
 @end
+

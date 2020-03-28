@@ -39,18 +39,16 @@ public class ServerSyncPlugin extends CordovaPlugin {
 
     @Override
     protected void pluginInitialize() {
-        Activity actv = cordova.getActivity();
-        mAccount = GetOrCreateSyncAccount(actv); 
+        Activity activity = cordova.getActivity();
+        mAccount = GetOrCreateSyncAccount(activity); 
         System.out.println("mAccount = "+mAccount);
 
         // TODO: In cfc_tracker but not in e_mission. Needed?
-        mResolver = actv.getContentResolver();
+        mResolver = activity.getContentResolver();
 
         // Get the content resolver for your app
-        // Turn on automatic syncing for the default account and authority
         ContentResolver.setIsSyncable(mAccount, AUTHORITY, 1);
-        ContentResolver.setSyncAutomatically(mAccount, AUTHORITY, true);
-        restartSync(actv);
+        restartSync(activity);
     }
 
     @Override
@@ -103,13 +101,30 @@ public class ServerSyncPlugin extends CordovaPlugin {
         }
     }
 
-    protected void restartSync(Context ctxt) {
-        System.out.println("Starting sync with interval "+
-                ConfigManager.getConfig(ctxt).getSyncInterval());
-        ContentResolver.addPeriodicSync(mAccount, AUTHORITY, unusedExtras,
-                ConfigManager.getConfig(ctxt).getSyncInterval());
+    protected void restartSync(Context context) {
+        ServerSyncConfig config = ConfigManager.getConfig(context);
+        if (config.isManual()) {
+            startManualSync();
+        } else {
+            startAutomaticSync(config);
+        }
     }
 
+    private void startAutomaticSync(ServerSyncConfig syncConfig){
+        System.out.println("Starting periodic sync with interval "+ syncConfig.getSyncInterval() + " Seconds");
+        // Turn on automatic syncing for the default account and authority
+        ContentResolver.setSyncAutomatically(mAccount, AUTHORITY, true);
+        ContentResolver.addPeriodicSync(mAccount, AUTHORITY, Bundle.EMPTY, syncConfig.getSyncInterval());
+    }
+
+    private void startManualSync (){
+        System.out.println("Starting manual sync");
+        // Start sync on demand
+        unusedExtras.putBoolean(ContentResolver.SYNC_EXTRAS_MANUAL, true);
+        // Forces the sync to start immediately.
+        unusedExtras.putBoolean(ContentResolver.SYNC_EXTRAS_EXPEDITED, true);
+        ContentResolver.requestSync(mAccount, AUTHORITY, unusedExtras);
+    }
 
     public static Account GetOrCreateSyncAccount(Context context) {
     	// Get an instance of the Android account manager

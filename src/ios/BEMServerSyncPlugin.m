@@ -67,7 +67,7 @@
         BEMServerSyncConfig* newCfg = [BEMServerSyncConfig new];
         [DataUtils dictToWrapper:newDict wrapper:newCfg];
         [BEMServerSyncConfigManager updateConfig:newCfg];
-        [BEMServerSyncPlugin applySync];
+        [BEMServerSyncPlugin restartSync];
         
         PFInstallation* currentInstallation = [PFInstallation currentInstallation];
         [currentInstallation saveInBackgroundWithBlock:^(BOOL succeeded, NSError *error) {
@@ -94,7 +94,33 @@
     
 }
 
-+ (void)applySync
++ (void) restartSync
+{
+    if ([BEMServerSyncConfigManager instance].isManual)
+    {
+        [LocalNotificationManager addNotification:[NSString stringWithFormat: @"Start manual sync"]];
+        [self startManualSync];
+    } else {
+        [LocalNotificationManager addNotification:[NSString stringWithFormat: @"Start auto sync"]];
+        [self applyAutoSync];
+    }
+}
+    
++ (void) startManualSync
+{
+    if ([BEMServerSyncConfigManager instance].ios_use_remote_push) {
+        PFInstallation *currentInstallation = [PFInstallation currentInstallation];
+        [currentInstallation removeObjectForKey:@"channels"];
+        [LocalNotificationManager addNotification:[NSString stringWithFormat:
+                                                   @"For remotePush, remove channel"] showUI:TRUE];
+    } else {
+        [[UIApplication sharedApplication] setMinimumBackgroundFetchInterval: DBL_MAX];
+        PFInstallation *currentInstallation = [PFInstallation currentInstallation];
+        [currentInstallation removeObjectForKey:@"channels"];
+    }
+}
+
++ (void)applyAutoSync
 {
     if ([BEMServerSyncConfigManager instance].ios_use_remote_push) {
         NSString* channel = [NSString stringWithFormat:@"interval_%@", @([BEMServerSyncConfigManager instance].sync_interval)];
@@ -107,9 +133,7 @@
         [[UIApplication sharedApplication] setMinimumBackgroundFetchInterval:[BEMServerSyncConfigManager instance].sync_interval];
         PFInstallation *currentInstallation = [PFInstallation currentInstallation];
         [currentInstallation removeObjectForKey:@"channels"];
-
     }
 }
 
 @end
-
